@@ -1,0 +1,63 @@
+---
+title: "STAT 408 Final Project"
+author: "William Cook & Jacob Lindsey"
+format: pdf
+---
+
+```{r}
+#| output: false
+library(tidyverse)
+snotel = read_csv("mt_snotel_month.csv")
+
+snotel = snotel |>
+  select(!median_snow_depth_1991_2020_in) |>
+  rename(c(lat = latitude, long = longitude, elev = elevation_ft, swe = swe_in, snow_depth = snow_depth_in, median_swe_1991_2020 = median_swe_1991_2020_in))
+```
+```{r}
+snotel |>
+  distinct(huc6)
+
+snotel = snotel |>
+  mutate(
+    basin = case_when(
+      str_detect(huc6, "100200") ~ "Missouri Headwaters",
+      str_detect(huc6, "100302") ~ "Marias",
+      str_detect(huc6, "170101") ~ "Kootenai",
+      str_detect(huc6, "170102") ~ "Pend Oreille",
+      str_detect(huc6, "100301") ~ "Upper Missouri",
+      str_detect(huc6, "100700") ~ "Upper Yellowstone",
+      str_detect(huc6, "100401") ~ "Fort Peck Lake",
+      str_detect(huc6, "100402") ~ "Musselshell",
+      str_detect(huc6, "90400") ~ "Upper South Saskatchewan River",
+      str_detect(huc6, "100500") ~ "Milk",
+      TRUE ~ NA_character_)) |>
+  relocate(huc6, .after = basin)
+
+snotel_clean = snotel |>
+  mutate(
+    date = ymd(date)) |>
+  mutate(
+    month = month(date, label = TRUE),
+  month = factor(
+      month, levels = c("Oct", "Nov", "Dec","Jan", 
+                        "Feb", "Mar", "Apr","May", 
+                        "Jun", "Jul", "Aug","Sep"))) |>
+  relocate(month, .after = month_year) |>
+  mutate(
+    year = year(date)) |>
+  relocate(year, .after = month)
+```
+
+```{r}
+# Summary Statistics
+
+snotel_clean |>
+  distinct(station_id, basin) |>
+  count(basin, sort = TRUE)
+
+snotel_clean |>
+  group_by(month) |>
+  summarise(mean_swe = mean(swe, na.rm = TRUE)) |>
+  arrange(desc(mean_swe))
+```
+
