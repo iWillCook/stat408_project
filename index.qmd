@@ -55,6 +55,13 @@ snotel_clean = snotel |>
 
 
 # About the Data
+This project explores snowpack trends across the 10 drainage basins in Montana between 2015 and 2025. Our focus is on snow water equivalent (SWE), a measure of the amount of water contained within the snowpack. Because snowpack is a major source of water for rivers, agriculture, recreation, population centers, and much more across Montana, comparing SWE across basins allows us to investigate differences in seasonal water availability. 
+
+The Natural Resource Conservation Service (NRCS), a department of the US Department of Agriculture, runs and maintains over 850 snow telemetry (SNOTEL) sites across the western US and Alaska. These sites are automated monitoring stations that collect data on snowpack and climate conditions in mountain areas. SNOTEL sites commonly collect data on swe, snow depth, precipitation, and air temperature. Some enhanced sites also collect soil moisture, soil temperature, solar radiation, wind speed, relative humidity, and atmospheric pressure, though not every site records every variable. 
+
+Using the NRCS Air & Water Database Report Generator, we manually selected every SNOTEL site located in Montana and included the date, station name, station id, latitude, longitude, elevation, 
+
+
 
 # Seasonal SWE Patterns
 ```{r}
