@@ -1,0 +1,75 @@
+---
+title: "Montana SNOTEL Snowpack Dashboard"
+author: "William Cook & Jacob Lindsey"
+format: dashboard
+---
+
+```{r}
+#| label: setup
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(lubridate)
+
+# Import CSV
+snotel = read_csv("mt_snotel_month.csv")
+
+# Select & rename columns of interest
+snotel = snotel |>
+  select(!median_snow_depth_1991_2020_in) |>
+  rename(c(lat = latitude, long = longitude, elev = elevation_ft, swe = swe_in, snow_depth = snow_depth_in, median_swe_1991_2020 = median_swe_1991_2020_in))
+
+# Create and populate drainage basin column
+snotel = snotel |>
+  mutate(
+    basin = case_when(
+      str_detect(huc6, "100200") ~ "Missouri Headwaters",
+      str_detect(huc6, "100302") ~ "Marias",
+      str_detect(huc6, "170101") ~ "Kootenai",
+      str_detect(huc6, "170102") ~ "Pend Oreille",
+      str_detect(huc6, "100301") ~ "Upper Missouri",
+      str_detect(huc6, "100700") ~ "Upper Yellowstone",
+      str_detect(huc6, "100401") ~ "Fort Peck Lake",
+      str_detect(huc6, "100402") ~ "Musselshell",
+      str_detect(huc6, "90400") ~ "Upper South Saskatchewan River",
+      str_detect(huc6, "100500") ~ "Milk",
+      TRUE ~ NA_character_)) |>
+  relocate(huc6, .after = basin)
+
+# Create and populate date, month, and year columns
+snotel_clean = snotel |>
+  mutate(
+    date = ymd(date)) |>
+  mutate(
+    month = month(date, label = TRUE),
+  month = factor(
+      month, levels = c("Oct", "Nov", "Dec","Jan", 
+                        "Feb", "Mar", "Apr","May", 
+                        "Jun", "Jul", "Aug","Sep"))) |>
+  relocate(month, .after = month_year) |>
+  mutate(
+    year = year(date)) |>
+  relocate(year, .after = month)
+```
+
+
+# About the Data
+
+# Seasonal SWE Patterns
+```{r}
+snotel_clean |>
+  group_by(basin, month) |>
+  summarise(mean_swe = mean(swe, na.rm = TRUE), .groups = "drop") |>
+  ggplot(aes(x = month, y = mean_swe, color = basin, group = basin)) +
+  geom_line() +
+  labs(
+    title = "Mean Monthly SWE by Basin (2015-2025)",
+    x = "Month",
+    y = "Mean Snow Water Equivalent (in)") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+# Percent of Average SWE
+
+# Findings and Resources
