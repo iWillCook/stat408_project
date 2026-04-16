@@ -1,0 +1,16 @@
+---
+title: "Peer Review Submission"
+author: "William Cook & Jacob Lindsey"
+date: today
+format: pdf
+---
+
+## Quarto Dashboard 
+
+<https://iwillcook.github.io/stat408_project/>
+
+
+## GitHub Repo
+
+<https://github.com/iWillCook/stat408_project>
+
