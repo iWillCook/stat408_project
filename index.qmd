@@ -13,7 +13,6 @@ library(tidyverse)
 library(lubridate)
 library(knitr)
 library(plotly)
-library(crosstalk)
 
 # Import CSV
 snotel = read_csv("mt_snotel_month.csv")
@@ -64,9 +63,10 @@ snotel_clean = snotel |>
   relocate(cal_year, .after = month_num) |>
   relocate(water_year, .after = cal_year)
 
+# Create and populate % median SWE column
 snotel_clean = snotel_clean |>
   mutate(
-    pct_avg_swe = if_else(
+    pct_median_swe = if_else(
       median_swe_1991_2020 > 0,
       100 * swe / median_swe_1991_2020,
       NA_real_))
@@ -131,81 +131,88 @@ The summary table shows that the basins Kooteni, Pend Oreille, and Fort Peck Lak
 mountain range location, and regional climate patterns. Because the dashboard averages across all stations in each basin, the results are best interpreted as
 broad basin-level patterns rather than conditions at one specific SNOTEL site.
 
-# Percent of Average SWE
+# SWE Comparison
 ```{r}
-#| label: interactive-pct-average-heatmap
-#| height: 650
+#| label: interactive-pct-median-swe-heatmap
+#| height: 675
 
 heatmap_data <- snotel_clean |>
   filter(month %in% c("Dec", "Jan", "Feb", "Mar", "Apr", "May")) |>
-  group_by(water_year, basin, month) |>
-  summarise(
-    mean_pct_avg_swe = mean(pct_avg_swe, na.rm = TRUE),
-    .groups = "drop"
-  )
-
-years <- sort(unique(heatmap_data$water_year))
-
-fig <- plot_ly()
-
-for (i in seq_along(years)) {
-  year_data <- heatmap_data |>
-    filter(water_year == years[i])
-
-  z_matrix <- year_data |>
-    select(basin, month, mean_pct_avg_swe) |>
-    pivot_wider(
-      names_from = month,
-      values_from = mean_pct_avg_swe
-    ) |>
-    arrange(basin)
-
-  fig <- fig |>
-    add_heatmap(
-      x = colnames(z_matrix)[-1],
-      y = z_matrix$basin,
-      z = as.matrix(z_matrix[, -1]),
-      visible = i == 1,
-      colorscale = "Viridis",
-      colorbar = list(title = "% of Average SWE"),
-      hovertemplate = paste(
-        "Month: %{x}<br>",
-        "Basin: %{y}<br>",
-        "% of Average SWE: %{z:.1f}%<extra></extra>"
-      )
+  mutate(
+    snow_month_num = case_when(
+      month == "Dec" ~ 1,
+      month == "Jan" ~ 2,
+      month == "Feb" ~ 3,
+      month == "Mar" ~ 4,
+      month == "Apr" ~ 5,
+      month == "May" ~ 6
     )
-}
+  ) |>
+  group_by(water_year, basin, month, snow_month_num) |>
+  summarise(
+    mean_pct_median_swe = mean(pct_median_swe, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  filter(!is.na(mean_pct_median_swe))
 
-fig <- fig |>
+plot_ly(
+  data = heatmap_data,
+  x = ~snow_month_num,
+  y = ~basin,
+  z = ~mean_pct_median_swe,
+  frame = ~water_year,
+  type = "heatmap",
+  colors = c(
+    "#b2182b",
+    "#ef8a62",
+    "#fddf8a",
+    "#a6d96a",
+    "#66bd63",
+    "#1a9850"
+  ),
+  zmin = 0,
+  zmax = 200,
+  colorbar = list(
+    title = "% of<br>Median SWE",
+    tickvals = c(0, 50, 75, 100, 125, 150, 200),
+    ticktext = c("0%", "50%", "75%", "100%", "125%", "150%", "200%+")
+  ),
+  text = ~paste0(
+    "Water Year: ", water_year,
+    "<br>Month: ", month,
+    "<br>Basin: ", basin,
+    "<br>% of Median SWE: ", round(mean_pct_median_swe, 1), "%"
+  ),
+  hovertemplate = "%{text}<extra></extra>"
+) |>
   layout(
-    title = paste("Percent of Average SWE by Basin and Month:", years[1]),
+    title = "Percent of Median SWE by Basin and Month",
     height = 650,
-    margin = list(l = 150, r = 80, t = 90, b = 80),
-    xaxis = list(title = "Month"),
+    margin = list(l = 160, r = 140, t = 80, b = 100),
+    xaxis = list(
+      title = "Month",
+      tickmode = "array",
+      tickvals = 1:6,
+      ticktext = c("Dec", "Jan", "Feb", "Mar", "Apr", "May"),
+      range = c(0.5, 6.5),
+      fixedrange = TRUE
+    ),
     yaxis = list(
       title = "Drainage Basin",
-      automargin = TRUE
-    ),
-    updatemenus = list(
-      list(
-        active = 0,
-        x = 0,
-        y = 1.15,
-        buttons = lapply(seq_along(years), function(i) {
-          list(
-            label = as.character(years[i]),
-            method = "update",
-            args = list(
-              list(visible = seq_along(years) == i),
-              list(title = paste("Percent of Average SWE by Basin and Month:", years[i]))
-            )
-          )
-        })
-      )
+      fixedrange = TRUE
     )
+  ) |>
+  animation_opts(
+    frame = 0,
+    transition = 0,
+    redraw = TRUE
+  ) |>
+  animation_slider(
+    currentvalue = list(prefix = "Water Year: ")
   )
-
-fig
 ```
+
+This heatmap compares observed SWE to the 1991–2020 median SWE during the main snowpack season. Use the water year slider to change the water year. Values 
+near 100% indicate SWE close to the long-term median, values below 100% indicate below-median snowpack, and values above 100% indicate above-median snowpack.
 
 # Findings and Resources
