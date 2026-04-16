@@ -1,0 +1,88 @@
+---
+title: "Montana Snowpack Patterns"
+author: "William Cook & Jacob Lindsey"
+format: pdf
+---
+
+## Proposal
+
+  For this project, we plan to use monthy SNOTEL data (taken the 1st of each month) from October 2015 through September 2025. The dataset contains all 96 SNOTEL sites located in Montana and includes the station name, station ID, latitude, longitude, elevation, snow water equivalent (SWE), median SWE, snow depth, huc6 code, and basin name. The data comes form the UDSA Natural Resources Conservation Service SNOTEL network and it's report generator service. These SNOTEL, or Snow Telemetry sites are automated monitoring sites that collect snow and climate data across mountain areas of the US. We are primarily interested in SWE, or the measure of how much water is contained within the snowpack, which is the most used variable to compare snowpack accumulation and seasonal snow patterns across various locations and times.
+  We plan to explore a range of questions such as what basins tend to have a higher snowpack, the variety of the timing of peak snowpack depth between years and locations, comparing certian years to median swe, and other potential questions that arise in our analysis. 
+  Our project will most likely be a quarto dashboard, with one part introducing the dataset and giving background information, and the other parts will show visualizations of seasonal snowpack trends, compare between basins, and other statistical investigations. 
+
+\newpage
+
+## Basic Statistics/Plots
+
+```{r}
+#| include: false
+library(tidyverse)
+snotel = read_csv("mt_snotel_month.csv")
+
+snotel = snotel |>
+  select(!median_snow_depth_1991_2020_in) |>
+  rename(c(lat = latitude, long = longitude, elev = elevation_ft, swe = swe_in, snow_depth = snow_depth_in, median_swe_1991_2020 = median_swe_1991_2020_in))
+
+snotel |>
+  distinct(huc6)
+
+snotel = snotel |>
+  mutate(
+    basin = case_when(
+      str_detect(huc6, "100200") ~ "Missouri Headwaters",
+      str_detect(huc6, "100302") ~ "Marias",
+      str_detect(huc6, "170101") ~ "Kootenai",
+      str_detect(huc6, "170102") ~ "Pend Oreille",
+      str_detect(huc6, "100301") ~ "Upper Missouri",
+      str_detect(huc6, "100700") ~ "Upper Yellowstone",
+      str_detect(huc6, "100401") ~ "Fort Peck Lake",
+      str_detect(huc6, "100402") ~ "Musselshell",
+      str_detect(huc6, "90400") ~ "Upper South Saskatchewan River",
+      str_detect(huc6, "100500") ~ "Milk",
+      TRUE ~ NA_character_)) |>
+  relocate(huc6, .after = basin)
+
+snotel_clean = snotel |>
+  mutate(
+    date = ymd(date)) |>
+  mutate(
+    month = month(date, label = TRUE),
+  month = factor(
+      month, levels = c("Oct", "Nov", "Dec","Jan", 
+                        "Feb", "Mar", "Apr","May", 
+                        "Jun", "Jul", "Aug","Sep"))) |>
+  relocate(month, .after = month_year) |>
+  mutate(
+    year = year(date)) |>
+  relocate(year, .after = month)
+```
+
+1. Number of Stations by Basin
+```{r}
+snotel_clean |>
+  distinct(station_id, basin) |>
+  count(basin, sort = TRUE)
+```
+
+2. Mean SWE by Month
+```{r}
+snotel_clean |>
+  group_by(month) |>
+  summarise(mean_swe = mean(swe, na.rm = TRUE)) |>
+  arrange(desc(mean_swe))
+```
+
+3. Mean Monthly SWE by Basin (2015-2025)
+```{r}
+snotel_clean |>
+  group_by(basin, month) |>
+  summarise(mean_swe = mean(swe, na.rm = TRUE), .groups = "drop") |>
+  ggplot(aes(x = month, y = mean_swe, color = basin, group = basin)) +
+  geom_line() +
+  labs(
+    title = "Mean Monthly SWE by Basin (2015-2025)",
+    x = "Month",
+    y = "Mean Snow Water Equivalent (in)")
+```
+
+
