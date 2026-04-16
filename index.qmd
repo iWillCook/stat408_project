@@ -135,10 +135,10 @@ broad basin-level patterns rather than conditions at one specific SNOTEL site.
 
 ## Row
 
-### Interactive Heatmap {height=675}
+### Interactive Heatmap {height=600}
 ```{r}
 #| label: interactive-pct-median-swe-heatmap
-#| height: 675
+#| height: 600
 
 heatmap_data = snotel_clean |>
   filter(month %in% c("Dec", "Jan", "Feb", "Mar", "Apr", "May")) |>
@@ -210,7 +210,7 @@ heatmap
 
 ## Row
 
-### Interpretation {height=200}
+### Interpretation {height=225}
 This heatmap compares observed SWE to the 1991–2020 median SWE during the main snowpack season. Use the water year slider to change the water year. Values 
 near 100% indicate SWE close to the long-term median, values below 100% indicate below-median snowpack, and values above 100% indicate above-median snowpack.
 
