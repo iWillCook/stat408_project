@@ -12,6 +12,8 @@ format: dashboard
 library(tidyverse)
 library(lubridate)
 library(knitr)
+library(plotly)
+library(crosstalk)
 
 # Import CSV
 snotel = read_csv("mt_snotel_month.csv")
@@ -130,5 +132,80 @@ mountain range location, and regional climate patterns. Because the dashboard av
 broad basin-level patterns rather than conditions at one specific SNOTEL site.
 
 # Percent of Average SWE
+```{r}
+#| label: interactive-pct-average-heatmap
+#| height: 650
+
+heatmap_data <- snotel_clean |>
+  filter(month %in% c("Dec", "Jan", "Feb", "Mar", "Apr", "May")) |>
+  group_by(water_year, basin, month) |>
+  summarise(
+    mean_pct_avg_swe = mean(pct_avg_swe, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+years <- sort(unique(heatmap_data$water_year))
+
+fig <- plot_ly()
+
+for (i in seq_along(years)) {
+  year_data <- heatmap_data |>
+    filter(water_year == years[i])
+
+  z_matrix <- year_data |>
+    select(basin, month, mean_pct_avg_swe) |>
+    pivot_wider(
+      names_from = month,
+      values_from = mean_pct_avg_swe
+    ) |>
+    arrange(basin)
+
+  fig <- fig |>
+    add_heatmap(
+      x = colnames(z_matrix)[-1],
+      y = z_matrix$basin,
+      z = as.matrix(z_matrix[, -1]),
+      visible = i == 1,
+      colorscale = "Viridis",
+      colorbar = list(title = "% of Average SWE"),
+      hovertemplate = paste(
+        "Month: %{x}<br>",
+        "Basin: %{y}<br>",
+        "% of Average SWE: %{z:.1f}%<extra></extra>"
+      )
+    )
+}
+
+fig <- fig |>
+  layout(
+    title = paste("Percent of Average SWE by Basin and Month:", years[1]),
+    height = 650,
+    margin = list(l = 150, r = 80, t = 90, b = 80),
+    xaxis = list(title = "Month"),
+    yaxis = list(
+      title = "Drainage Basin",
+      automargin = TRUE
+    ),
+    updatemenus = list(
+      list(
+        active = 0,
+        x = 0,
+        y = 1.15,
+        buttons = lapply(seq_along(years), function(i) {
+          list(
+            label = as.character(years[i]),
+            method = "update",
+            args = list(
+              list(visible = seq_along(years) == i),
+              list(title = paste("Percent of Average SWE by Basin and Month:", years[i]))
+            )
+          )
+        })
+      )
+    )
+  )
+
+fig
+```
 
 # Findings and Resources
