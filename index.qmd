@@ -134,7 +134,7 @@ broad basin-level patterns rather than conditions at one specific SNOTEL site.
 # SWE Comparison
 ```{r}
 #| label: interactive-pct-median-swe-heatmap
-#| height: 675
+#| height: 600
 
 heatmap_data = snotel_clean |>
   filter(month %in% c("Dec", "Jan", "Feb", "Mar", "Apr", "May")) |>
