@@ -78,7 +78,7 @@ ul.task-list li input[type="checkbox"] {
 <p>The Natural Resource Conservation Service (NRCS), a department of the U.S. Department of Agriculture, runs and maintains over 850 snow telemetry (SNOTEL) sites across the western U.S. and Alaska. These sites are automated monitoring stations that collect data on snowpack and climate conditions in mountain areas. SNOTEL sites commonly collect data on SWE, snow depth, precipitation, and air temperature. Some enhanced sites also collect soil moisture, soil temperature, solar radiation, wind speed, relative humidity, and atmospheric pressure, though not every site records every variable.</p>
 <p>Using the NRCS Air &amp; Water Database Report Generator, we manually selected all 96 SNOTEL sites located in Montana and included the variables date, station name, station ID, latitude, longitude, elevation, SWE, snow depth, HUC6 code, and median SWE from 1991–2020. The median SWE variable represents the typical SWE value for each site and date based on the 1991–2020 reference period, which allows current observations to be compared to longer-term normal snowpack conditions.</p>
 <p>We were interested in data from October 2015 to September 2025 across all 96 sites, so pulling daily observations from each site for the entire 10-year span was not practical. Instead, we pulled monthly data from the first day of each month, which greatly reduced the size of our dataset. Each observation for each station was pulled from the first day of the month, so stations and years can be compared directly.</p>
-<p>For this project, the term “year” refers to the water year, which runs from October 1 to September 30 of the following calendar year and is named for the year in which it ends. For example, the 2025 water year begins on October 1, 2024 and ends on September 30, 2025. The dataset was cleaned so that there are columns for both month and year of observation, with <code>month</code> stored as a factor beginning with October.</p>
+<p>For this project, the term “year” refers to the water year (abreviated to “WY”), which runs from October 1 to September 30 of the following calendar year and is named for the year in which it ends. For example, the 2025 water year begins on October 1, 2024 and ends on September 30, 2025. The dataset was cleaned so that there are columns for both month and year of observation, with <code>month</code> stored as a factor beginning with October.</p>
 <p>The dataset also contains HUC6 codes for each station and observation. HUC6 codes are six-digit Hydrologic Unit Codes used to identify large drainage basins or watershed regions. In this project, these codes were used to group individual SNOTEL sites into major Montana drainage basins, allowing SWE patterns to be compared by watershed instead of only by individual station.</p>
 <p>One limitation of this dataset is that it uses monthly observations from the first day of each month rather than daily records. This makes the dataset easier to work with and compare across stations, but it also means that short-term snow events, melt periods, or rapid changes between months are not captured. Because of this, the dashboard is best used to compare broad seasonal and basin-level SWE patterns rather than day-to-day snowpack conditions.</p>
 </div>
@@ -91,12 +91,107 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <div id="seasonal-swe-patterns" class="dashboard-page tab-pane grid-skip html-fill-item html-fill-container" data-orientation="rows" aria-labelledby="tab-seasonal-swe-patterns">
-<div class="html-fill-item html-fill-container bslib-grid" style="display: grid; grid-template-rows: minmax(3em, 1fr); grid-auto-columns: minmax(0, 1fr);">
+<div class="html-fill-item html-fill-container bslib-grid" style="display: grid; grid-template-rows: minmax(3em, 1fr) minmax(3em, 1fr) minmax(3em, max-content); grid-auto-columns: minmax(0, 1fr);">
 <div class="card cell html-fill-item html-fill-container bslib-card" data-bslib-card-init="" data-require-bs-caller="card()" data-full-screen="false">
 <div class="card-body html-fill-item html-fill-container">
 <div class="cell-output-display html-fill-item html-fill-container">
-<img src="index_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid quarto-dashboard-img-contain">
+<img src="index_files/figure-html/mean-monthly-swe-plot-1.png" class="img-fluid quarto-dashboard-img-contain">
 </div>
+</div>
+<bslib-tooltip placement="auto" bsoptions="[]" data-require-bs-version="5" data-require-bs-caller="tooltip()">
+    <template>Expand</template>
+    <span class="bslib-full-screen-enter badge rounded-pill">
+        <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24" style="height:1em;width:1em;" aria-hidden="true" role="img"><path d="M20 5C20 4.4 19.6 4 19 4H13C12.4 4 12 3.6 12 3C12 2.4 12.4 2 13 2H21C21.6 2 22 2.4 22 3V11C22 11.6 21.6 12 21 12C20.4 12 20 11.6 20 11V5ZM4 19C4 19.6 4.4 20 5 20H11C11.6 20 12 20.4 12 21C12 21.6 11.6 22 11 22H3C2.4 22 2 21.6 2 21V13C2 12.4 2.4 12 3 12C3.6 12 4 12.4 4 13V19Z"></path></svg>
+    </span>
+</bslib-tooltip><script data-bslib-card-init="">bslib.Card.initializeAllCards();</script></div>
+<div class="card cell html-fill-item html-fill-container bslib-card" data-bslib-card-init="" data-require-bs-caller="card()" data-full-screen="false">
+<div class="card-body html-fill-item html-fill-container">
+<div class="cell-output-display html-fill-item html-fill-container">
+<table class="caption-top table table-sm table-striped small">
+<caption>Summary of SWE by Drainage Basin</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Drainage Basin</th>
+<th style="text-align: right;">Mean SWE</th>
+<th style="text-align: right;">Median SWE</th>
+<th style="text-align: right;">Maximum SWE</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Kootenai</td>
+<td style="text-align: right;">8.00</td>
+<td style="text-align: right;">2.95</td>
+<td style="text-align: right;">51.6</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Pend Oreille</td>
+<td style="text-align: right;">7.00</td>
+<td style="text-align: right;">1.70</td>
+<td style="text-align: right;">69.8</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Fort Peck Lake</td>
+<td style="text-align: right;">6.64</td>
+<td style="text-align: right;">3.80</td>
+<td style="text-align: right;">28.6</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Missouri Headwaters</td>
+<td style="text-align: right;">5.99</td>
+<td style="text-align: right;">2.70</td>
+<td style="text-align: right;">52.0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Upper Yellowstone</td>
+<td style="text-align: right;">5.51</td>
+<td style="text-align: right;">1.70</td>
+<td style="text-align: right;">56.8</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Marias</td>
+<td style="text-align: right;">4.79</td>
+<td style="text-align: right;">0.95</td>
+<td style="text-align: right;">39.7</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Upper Missouri</td>
+<td style="text-align: right;">3.58</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">27.0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Musselshell</td>
+<td style="text-align: right;">3.53</td>
+<td style="text-align: right;">2.05</td>
+<td style="text-align: right;">15.3</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Upper South Saskatchewan River</td>
+<td style="text-align: right;">3.19</td>
+<td style="text-align: right;">0.05</td>
+<td style="text-align: right;">19.0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Milk</td>
+<td style="text-align: right;">1.51</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">9.2</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<bslib-tooltip placement="auto" bsoptions="[]" data-require-bs-version="5" data-require-bs-caller="tooltip()">
+    <template>Expand</template>
+    <span class="bslib-full-screen-enter badge rounded-pill">
+        <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 24 24" style="height:1em;width:1em;" aria-hidden="true" role="img"><path d="M20 5C20 4.4 19.6 4 19 4H13C12.4 4 12 3.6 12 3C12 2.4 12.4 2 13 2H21C21.6 2 22 2.4 22 3V11C22 11.6 21.6 12 21 12C20.4 12 20 11.6 20 11V5ZM4 19C4 19.6 4.4 20 5 20H11C11.6 20 12 20.4 12 21C12 21.6 11.6 22 11 22H3C2.4 22 2 21.6 2 21V13C2 12.4 2.4 12 3 12C3.6 12 4 12.4 4 13V19Z"></path></svg>
+    </span>
+</bslib-tooltip><script data-bslib-card-init="">bslib.Card.initializeAllCards();</script></div>
+<div class="card html-fill-item html-fill-container bslib-card" data-fill="false" data-bslib-card-init="" data-require-bs-caller="card()" data-full-screen="false">
+<div class="card-body html-fill-item html-fill-container">
+<p>Across most basins, SWE follows a clear seasonal pattern. Snowpack begins building in the fall and winter, reaches its highest values in the spring, and then declines quickly during late spring and summer. This pattern reflects Montana’s seasonal snow accumulation and melt cycle.</p>
+<p>The summary table shows that the basins Kooteni, Pend Oreille, and Fort Peck Lake consistently have higher SWE than others. These differences are likely related to elevation, mountain range location, and regional climate patterns. Because the dashboard averages across all stations in each basin, the results are best interpreted as broad basin-level patterns rather than conditions at one specific SNOTEL site.</p>
 </div>
 <bslib-tooltip placement="auto" bsoptions="[]" data-require-bs-version="5" data-require-bs-caller="tooltip()">
     <template>Expand</template>

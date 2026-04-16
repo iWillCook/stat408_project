@@ -11,9 +11,14 @@ format: dashboard
 
 library(tidyverse)
 library(lubridate)
+library(knitr)
 
 # Import CSV
 snotel = read_csv("mt_snotel_month.csv")
+```
+
+```{r}
+#| label: data-cleaning
 
 # Select & rename columns of interest
 snotel = snotel |>
@@ -39,19 +44,33 @@ snotel = snotel |>
 
 # Create and populate date, month, and year columns
 snotel_clean = snotel |>
+  mutate(date = ymd(date)) |>
   mutate(
-    date = ymd(date)) |>
-  mutate(
-    month = month(date, label = TRUE),
-  month = factor(
-      month, levels = c("Oct", "Nov", "Dec","Jan", 
-                        "Feb", "Mar", "Apr","May", 
-                        "Jun", "Jul", "Aug","Sep"))) |>
+    month_num = month(date),
+    month = month(date, label = TRUE, abbr = TRUE),
+    month = factor(
+      month,
+      levels = c("Oct", "Nov", "Dec", "Jan", 
+                 "Feb", "Mar", "Apr", "May", 
+                 "Jun", "Jul", "Aug", "Sep")
+    ),
+    cal_year = year(date),
+    water_year = if_else(month_num >= 10, cal_year + 1, cal_year)
+  ) |>
   relocate(month, .after = month_year) |>
+  relocate(month_num, .after = month) |>
+  relocate(cal_year, .after = month_num) |>
+  relocate(water_year, .after = cal_year)
+
+snotel_clean = snotel_clean |>
   mutate(
-    year = year(date)) |>
-  relocate(year, .after = month)
+    pct_avg_swe = if_else(
+      median_swe_1991_2020 > 0,
+      100 * swe / median_swe_1991_2020,
+      NA_real_))
+  
 ```
+
 
 # About the Data
 This project explores snowpack trends across the 10 drainage basins in Montana between 2015 and 2025. Our focus is on snow water equivalent (SWE), which is a measure of the amount of water contained within the snowpack. Because snowpack is a major source of water for rivers, agriculture, recreation, population centers, and many other parts of life in Montana, comparing SWE across basins allows us to investigate differences in seasonal water availability.
@@ -62,7 +81,7 @@ Using the NRCS Air & Water Database Report Generator, we manually selected all 9
 
 We were interested in data from October 2015 to September 2025 across all 96 sites, so pulling daily observations from each site for the entire 10-year span was not practical. Instead, we pulled monthly data from the first day of each month, which greatly reduced the size of our dataset. Each observation for each station was pulled from the first day of the month, so stations and years can be compared directly.
 
-For this project, the term "year" refers to the water year, which runs from October 1 to September 30 of the following calendar year and is named for the year in which it ends. For example, the 2025 water year begins on October 1, 2024 and ends on September 30, 2025. The dataset was cleaned so that there are columns for both month and year of observation, with `month` stored as a factor beginning with October.
+For this project, the term "year" refers to the water year (abreviated to "WY"), which runs from October 1 to September 30 of the following calendar year and is named for the year in which it ends. For example, the 2025 water year begins on October 1, 2024 and ends on September 30, 2025. The dataset was cleaned so that there are columns for both month and year of observation, with `month` stored as a factor beginning with October.
 
 The dataset also contains HUC6 codes for each station and observation. HUC6 codes are six-digit Hydrologic Unit Codes used to identify large drainage basins or watershed regions. In this project, these codes were used to group individual SNOTEL sites into major Montana drainage basins, allowing SWE patterns to be compared by watershed instead of only by individual station.
 
@@ -70,17 +89,45 @@ One limitation of this dataset is that it uses monthly observations from the fir
 
 # Seasonal SWE Patterns
 ```{r}
+#| label: mean-monthly-swe-plot
+
 snotel_clean |>
   group_by(basin, month) |>
   summarise(mean_swe = mean(swe, na.rm = TRUE), .groups = "drop") |>
   ggplot(aes(x = month, y = mean_swe, color = basin, group = basin)) +
   geom_line() +
   labs(
-    title = "Mean Monthly SWE by Basin (2015-2025)",
+    title = "Mean Monthly SWE by Basin (WY 2016–2025)",
     x = "Month",
     y = "Mean Snow Water Equivalent (in)") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
+
+```{r}
+#| label: basin-summary-table
+
+snotel_clean |>
+  group_by(basin) |>
+  summarise(
+    `Mean SWE` = round(mean(swe, na.rm = TRUE), 2),
+    `Median SWE` = round(median(swe, na.rm = TRUE), 2),
+    `Maximum SWE` = round(max(swe, na.rm = TRUE), 2),
+    .groups = "drop"
+  ) |>
+  arrange(desc(`Mean SWE`)) |>
+  kable(
+    caption = "Summary of SWE by Drainage Basin",
+    col.names = c("Drainage Basin", "Mean SWE", "Median SWE", "Maximum SWE")
+  )
+```
+
+
+Across most basins, SWE follows a clear seasonal pattern. Snowpack begins building in the fall and winter, reaches its highest values in the spring, and then
+declines quickly during late spring and summer. This pattern reflects Montana’s seasonal snow accumulation and melt cycle.
+
+The summary table shows that the basins Kooteni, Pend Oreille, and Fort Peck Lake consistently have higher SWE than others. These differences are likely related to elevation,
+mountain range location, and regional climate patterns. Because the dashboard averages across all stations in each basin, the results are best interpreted as
+broad basin-level patterns rather than conditions at one specific SNOTEL site.
 
 # Percent of Average SWE
 
