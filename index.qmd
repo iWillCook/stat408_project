@@ -214,4 +214,4 @@ site in Montana to its respective drainage basin using the HUC6 code, we were ab
 the overall average to the yearly average based on the watershed. Doing this we are able to visualize the difference in snow water equivalent not only for
 each drainage basin or region in Montana, but compare the same basin to itself during different water years.
 
-yeah
+YEAH
