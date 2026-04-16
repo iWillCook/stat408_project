@@ -136,7 +136,7 @@ broad basin-level patterns rather than conditions at one specific SNOTEL site.
 #| label: interactive-pct-median-swe-heatmap
 #| height: 675
 
-heatmap_data <- snotel_clean |>
+heatmap_data = snotel_clean |>
   filter(month %in% c("Dec", "Jan", "Feb", "Mar", "Apr", "May")) |>
   mutate(
     snow_month_num = case_when(
@@ -145,17 +145,14 @@ heatmap_data <- snotel_clean |>
       month == "Feb" ~ 3,
       month == "Mar" ~ 4,
       month == "Apr" ~ 5,
-      month == "May" ~ 6
-    )
-  ) |>
+      month == "May" ~ 6)) |>
   group_by(water_year, basin, month, snow_month_num) |>
   summarise(
     mean_pct_median_swe = mean(pct_median_swe, na.rm = TRUE),
-    .groups = "drop"
-  ) |>
+    .groups = "drop") |>
   filter(!is.na(mean_pct_median_swe))
 
-plot_ly(
+heatmap = plot_ly(
   data = heatmap_data,
   x = ~snow_month_num,
   y = ~basin,
@@ -168,23 +165,21 @@ plot_ly(
     "#fddf8a",
     "#a6d96a",
     "#66bd63",
-    "#1a9850"
-  ),
+    "#1a9850"),
   zmin = 0,
   zmax = 200,
   colorbar = list(
     title = "% of<br>Median SWE",
     tickvals = c(0, 50, 75, 100, 125, 150, 200),
-    ticktext = c("0%", "50%", "75%", "100%", "125%", "150%", "200%+")
-  ),
+    ticktext = c("0%", "50%", "75%", "100%", "125%", "150%", "200%+")),
   text = ~paste0(
     "Water Year: ", water_year,
     "<br>Month: ", month,
     "<br>Basin: ", basin,
-    "<br>% of Median SWE: ", round(mean_pct_median_swe, 1), "%"
-  ),
-  hovertemplate = "%{text}<extra></extra>"
-) |>
+    "<br>% of Median SWE: ", 
+    round(mean_pct_median_swe, 1), 
+    "%"),
+    hovertemplate = "%{text}<extra></extra>") |>
   layout(
     title = "Percent of Median SWE by Basin and Month",
     height = 650,
@@ -195,21 +190,18 @@ plot_ly(
       tickvals = 1:6,
       ticktext = c("Dec", "Jan", "Feb", "Mar", "Apr", "May"),
       range = c(0.5, 6.5),
-      fixedrange = TRUE
-    ),
+      fixedrange = TRUE),
     yaxis = list(
       title = "Drainage Basin",
-      fixedrange = TRUE
-    )
-  ) |>
+      fixedrange = TRUE)) |>
   animation_opts(
     frame = 0,
     transition = 0,
-    redraw = TRUE
-  ) |>
+    redraw = TRUE) |>
   animation_slider(
-    currentvalue = list(prefix = "Water Year: ")
-  )
+    currentvalue = list(prefix = "Water Year: "))
+
+heatmap
 ```
 
 This heatmap compares observed SWE to the 1991–2020 median SWE during the main snowpack season. Use the water year slider to change the water year. Values 
