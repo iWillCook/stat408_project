@@ -217,7 +217,8 @@ heatmap = plot_ly(
     "<br>% of Median SWE: ", 
     round(mean_pct_median_swe, 1), 
     "%"),
-    hovertemplate = "%{text}<extra></extra>") |>
+    hovertemplate = "%{text}<extra></extra>"
+  ) |>
   layout(
     title = "Percent of Median SWE by Basin and Month",
     height = 630,
@@ -231,13 +232,16 @@ heatmap = plot_ly(
       fixedrange = TRUE),
     yaxis = list(
       title = "Drainage Basin",
-      fixedrange = TRUE)) |>
+      fixedrange = TRUE)
+    ) |>
   animation_opts(
     frame = 0,
     transition = 0,
-    redraw = TRUE) |>
+    redraw = TRUE
+    ) |>
   animation_slider(
-    currentvalue = list(prefix = "Water Year: "))
+    currentvalue = list(prefix = "Water Year: ")
+    )
 
 heatmap
 ```
