@@ -24,7 +24,13 @@ snotel = read_csv("mt_snotel_month.csv")
 # Select & rename columns of interest
 snotel = snotel |>
   select(!median_snow_depth_1991_2020_in) |>
-  rename(c(lat = latitude, long = longitude, elev = elevation_ft, swe = swe_in, snow_depth = snow_depth_in, median_swe_1991_2020 = median_swe_1991_2020_in))
+  rename(c(lat = latitude, 
+           long = longitude, 
+           elev = elevation_ft,
+           swe = swe_in, 
+           snow_depth = snow_depth_in, 
+           median_swe_1991_2020 = median_swe_1991_2020_in)
+         )
 
 # Create and populate drainage basin column
 snotel = snotel |>
@@ -40,7 +46,8 @@ snotel = snotel |>
       str_detect(huc6, "100402") ~ "Musselshell",
       str_detect(huc6, "90400") ~ "Upper South Saskatchewan River",
       str_detect(huc6, "100500") ~ "Milk",
-      TRUE ~ NA_character_)) |>
+      TRUE ~ NA_character_)
+    ) |>
   relocate(huc6, .after = basin)
 
 # Create and populate date, month, and year columns
@@ -56,7 +63,9 @@ snotel_clean = snotel |>
                  "Jun", "Jul", "Aug", "Sep")
     ),
     cal_year = year(date),
-    water_year = if_else(month_num >= 10, cal_year + 1, cal_year)
+    water_year = if_else(month_num >= 10, 
+                         cal_year + 1, 
+                         cal_year)
   ) |>
   relocate(month, .after = month_year) |>
   relocate(month_num, .after = month) |>
@@ -69,7 +78,8 @@ snotel_clean = snotel_clean |>
     pct_median_swe = if_else(
       median_swe_1991_2020 > 0,
       100 * swe / median_swe_1991_2020,
-      NA_real_))
+      NA_real_)
+    )
   
 ```
 
@@ -90,46 +100,69 @@ The dataset also contains HUC6 codes for each station and observation. HUC6 code
 One limitation of this dataset is that it uses monthly observations from the first day of each month rather than daily records. This makes the dataset easier to work with and compare across stations, but it also means that short-term snow events, melt periods, or rapid changes between months are not captured. Because of this, the dashboard is best used to compare broad seasonal and basin-level SWE patterns rather than day-to-day snowpack conditions.
 
 # Seasonal SWE Patterns
+:::{.columns}
+
+::: {.column width="100%"}
+::: {.card height="440px"}
 ```{r}
 #| label: mean-monthly-swe-plot
+#| fig-height: 4.22
+#| fig-width: 7
 
+# Create avg SWE by month/basin plot
 snotel_clean |>
   group_by(basin, month) |>
   summarise(mean_swe = mean(swe, na.rm = TRUE), .groups = "drop") |>
-  ggplot(aes(x = month, y = mean_swe, color = basin, group = basin)) +
-  geom_line() +
-  labs(
-    title = "Mean Monthly SWE by Basin (WY 2016–2025)",
-    x = "Month",
-    y = "Mean Snow Water Equivalent (in)") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  ggplot(aes(x = month, 
+             y = mean_swe, 
+             color = basin, 
+             group = basin)) + 
+    geom_line() +
+    labs(
+      title = "Mean Monthly SWE by Basin (WY 2016–2025)",
+      x = "Month",
+      y = "Mean Snow Water Equivalent (in)") +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
+:::
+:::
 
+:::{.column width="100%"}
+:::{.card height="440px"}
+
+<div style="max-height: 800px; overflow-y: auto; margin-left: auto; width: 100%;">
 ```{r}
 #| label: basin-summary-table
 
+# Create Basin-SWE summary table
 snotel_clean |>
   group_by(basin) |>
-  summarise(
-    `Mean SWE` = round(mean(swe, na.rm = TRUE), 2),
-    `Median SWE` = round(median(swe, na.rm = TRUE), 2),
-    `Maximum SWE` = round(max(swe, na.rm = TRUE), 2),
-    .groups = "drop"
-  ) |>
-  arrange(desc(`Mean SWE`)) |>
-  kable(
-    caption = "Summary of SWE by Drainage Basin",
-    col.names = c("Drainage Basin", "Mean SWE", "Median SWE", "Maximum SWE")
-  )
+    summarise(
+      `Mean SWE` = round(mean(swe, na.rm = TRUE), 2),
+      `Median SWE` = round(median(swe, na.rm = TRUE), 2),
+      `Maximum SWE` = round(max(swe, na.rm = TRUE), 2),
+      .groups = "drop") |>
+    arrange(desc(`Mean SWE`)
+          ) |>
+    kable(
+      caption = "Summary of SWE by Drainage Basin",
+      col.names = c("Drainage Basin", "Mean SWE", "Median SWE", "Maximum SWE")
+      )
 ```
+</div>
+:::
+:::
 
+:::
 
+:::{.card height="180px"}
 Across most basins, SWE follows a clear seasonal pattern. Snowpack begins building in the fall and winter, reaches its highest values in the spring, and then
 declines quickly during late spring and summer. This pattern reflects Montana’s seasonal snow accumulation and melt cycle.
 
 The summary table shows that the basins Kooteni, Pend Oreille, and Fort Peck Lake consistently have higher SWE than others. These differences are likely related to elevation,
 mountain range location, and regional climate patterns. Because the dashboard averages across all stations in each basin, the results are best interpreted as
 broad basin-level patterns rather than conditions at one specific SNOTEL site.
+:::
 
 # SWE Comparison
 
@@ -137,6 +170,7 @@ broad basin-level patterns rather than conditions at one specific SNOTEL site.
 ```{r}
 #| label: interactive-pct-median-swe-heatmap
 
+# Filter/group data needed for heatmap
 heatmap_data = snotel_clean |>
   filter(month %in% c("Dec", "Jan", "Feb", "Mar", "Apr", "May")) |>
   mutate(
@@ -146,13 +180,16 @@ heatmap_data = snotel_clean |>
       month == "Feb" ~ 3,
       month == "Mar" ~ 4,
       month == "Apr" ~ 5,
-      month == "May" ~ 6)) |>
+      month == "May" ~ 6)
+    ) |>
   group_by(water_year, basin, month, snow_month_num) |>
   summarise(
     mean_pct_median_swe = mean(pct_median_swe, na.rm = TRUE),
-    .groups = "drop") |>
+    .groups = "drop"
+    ) |>
   filter(!is.na(mean_pct_median_swe))
 
+# Create interactive heatmap plot
 heatmap = plot_ly(
   data = heatmap_data,
   x = ~snow_month_num,
