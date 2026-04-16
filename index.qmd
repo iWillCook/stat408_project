@@ -259,7 +259,7 @@ site in Montana to its respective drainage basin using the HUC6 code, we were ab
 the overall average to the yearly average based on the watershed. Doing this we are able to visualize the difference in snow water equivalent not only for
 each drainage basin or region in Montana, but compare the same basin to itself during different water years.
 
-Through this analysis, it is hard to compare actual amount of snow in one region to another, as our reference is each region's median snow water equivalent over the last 30 years. What these graphics excel at is seeing each region's percent of median SWE for each month. We can analyze the differences throughout the years, and even see the changes in percent throughout one year. Although we will miss smaller scale weather events such as melts or large storms because of our monthly readings, this information still gives us great insights on historic patterns of snow melt for the state of Montana. 
+Through this analysis, it is hard to compare actual amount of snow in one region to another, as our reference is each region's median snow water equivalent over the last 30 years. What these graphics excel at is seeing each region's percent of median SWE for each month. We can analyze the differences throughout the years, and even see the changes in percent throughout one year. Although we will miss smaller scale weather events such as melts or large storms because of our monthly readings, this information still gives us great insights on recent and historic snow patterns for the state of Montana. 
 
 
 
