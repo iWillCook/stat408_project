@@ -208,3 +208,8 @@ This heatmap compares observed SWE to the 1991–2020 median SWE during the main
 near 100% indicate SWE close to the long-term median, values below 100% indicate below-median snowpack, and values above 100% indicate above-median snowpack.
 
 # Findings and Resources
+
+In this case study we are focusing on the median SWE for each snow telemetry site in Montana from 2016 to 2025. After manually assigning each snow telemetry
+site in Montana to its respective drainage basin using the HUC6 code, we were able to calculate an average SWE from 1991 to 2020 for each site, and compare
+the overall average to the yearly average based on the watershed. Doing this we are able to visualize the difference in snow water equivalent not only for
+each drainage basin or region in Montana, but compare the same basin to itself during different water years.
