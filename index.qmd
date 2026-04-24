@@ -100,9 +100,11 @@ The dataset also contains HUC6 codes for each station and observation. HUC6 code
 One limitation of this dataset is that it uses monthly observations from the first day of each month rather than daily records. This makes the dataset easier to work with and compare across stations, but it also means that short-term snow events, melt periods, or rapid changes between months are not captured. Because of this, the dashboard is best used to compare broad seasonal and basin-level SWE patterns rather than day-to-day snowpack conditions.
 
 # Seasonal SWE Patterns
-:::{.columns}
 
-::: {.column width="100%"}
+## Row {height="450px"}
+
+### Column {width="50%"}
+
 ::: {.card height="440px"}
 ```{r}
 #| label: mean-monthly-swe-plot
@@ -125,11 +127,10 @@ snotel_clean |>
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 :::
-:::
 
-:::{.column width="100%"}
+### Column {width="50%"}
+
 :::{.card height="440px"}
-
 <div style="max-height: 800px; overflow-y: auto; margin-left: auto; width: 100%;">
 ```{r}
 #| label: basin-summary-table
@@ -151,9 +152,8 @@ snotel_clean |>
 ```
 </div>
 :::
-:::
 
-:::
+## Row
 
 :::{.card height="180px"}
 Across most basins, SWE follows a clear seasonal pattern. Snowpack begins building in the fall and winter, reaches its highest values in the spring, and then
