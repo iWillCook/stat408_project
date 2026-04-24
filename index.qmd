@@ -168,8 +168,8 @@ broad basin-level patterns rather than conditions at one specific SNOTEL site.
 
 ## Row {height="560px"}
 
-### Column {width="70%"}
-::: {.card height="550px"}
+### Column {width="60%"}
+::: {.card height="570px"}
 ```{r}
 #| label: interactive-pct-median-swe-heatmap
 
@@ -250,11 +250,11 @@ heatmap
 ```
 :::
 
-### Column {width="30%"}
+### Column {width="40%"}
 This heatmap compares observed SWE to the 1991–2020 median SWE during the main snowpack season. Use the water year slider to change the water year. Values 
 near 100% indicate SWE close to the long-term median, values below 100% indicate below-median snowpack, and values above 100% indicate above-median snowpack.
 
-## Row
+#### Row
 
 ```{r}
 #| warning: false
@@ -301,9 +301,16 @@ peak_summary <- peak_data |>
 
 peak_test <- kruskal.test(peak_month_num ~ basin, data = peak_data)
 ```
-::: {.columns}
 
-::: {.column width="100%"}
+```{r}
+peak_summary |>
+  knitr::kable(
+    caption = "Typical Peak Snowpack Month by Basin",
+    col.names = c("Basin", "Peak Month"))
+```
+
+## Row 
+
 ::: {.card}
 A Kruskal-Wallis test found strong evidence that the typical peak snowpack month differs among basins ($\chi^2 = 49.311, df = 9, p < 0.001$). Pairwise Wilcoxon tests with Holm-adjusted p-values showed that many of the strongest differences involved the Milk basin, Fort Peck Lake, and Musselshell, indicating that peak snowpack timing is not uniform across Montana drainage basins.
 
@@ -311,18 +318,7 @@ The clearest pattern was that the Milk basin typically peaked earlier, in March,
 
 Because the dataset only includes observations from the first day of each month, these results should be interpreted as differences in peak timing at the monthly scale rather than the exact date of annual maximum snowpack.
 :::
-:::
 
-::: {.column width="100%"}
-```{r}
-peak_summary |>
-  knitr::kable(
-    caption = "Typical Peak Snowpack Month by Basin",
-    col.names = c("Basin", "Peak Month"))
-```
-:::
-
-:::
 
 ```{r}
 #| output: false
