@@ -166,7 +166,10 @@ broad basin-level patterns rather than conditions at one specific SNOTEL site.
 
 # SWE Comparison
 
-::: {.card height="665px"}
+## Row {height="560px"}
+
+### Column {width="70%"}
+::: {.card height="550px"}
 ```{r}
 #| label: interactive-pct-median-swe-heatmap
 
@@ -221,7 +224,7 @@ heatmap = plot_ly(
   ) |>
   layout(
     title = "Percent of Median SWE by Basin and Month",
-    height = 630,
+    height = 500,
     margin = list(l = 140, r = 140, t = 30, b = 40),
     xaxis = list(
       title = "Month",
@@ -247,10 +250,91 @@ heatmap
 ```
 :::
 
-:::{.card height="75px"}
+### Column {width="30%"}
 This heatmap compares observed SWE to the 1991–2020 median SWE during the main snowpack season. Use the water year slider to change the water year. Values 
 near 100% indicate SWE close to the long-term median, values below 100% indicate below-median snowpack, and values above 100% indicate above-median snowpack.
+
+## Row
+
+```{r}
+#| warning: false
+
+peak_data <- snotel_clean |>
+  filter(month %in% c("Jan", "Feb", "Mar", "Apr", "May", "Jun")) |>
+  group_by(water_year, basin, month) |>
+  summarise(
+    mean_swe = mean(swe, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  mutate(
+    peak_month_num = case_when(
+      month == "Jan" ~ 1,
+      month == "Feb" ~ 2,
+      month == "Mar" ~ 3,
+      month == "Apr" ~ 4,
+      month == "May" ~ 5,
+      month == "Jun" ~ 6
+    )
+  ) |>
+  group_by(water_year, basin) |>
+  slice_max(order_by = mean_swe, n = 1, with_ties = FALSE) |>
+  ungroup()
+
+peak_summary <- peak_data |>
+  group_by(basin) |>
+  summarise(
+    median_peak_month_num = median(peak_month_num, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  mutate(
+    `Peak Month` = case_when(
+      median_peak_month_num == 1 ~ "Jan",
+      median_peak_month_num == 2 ~ "Feb",
+      median_peak_month_num == 3 ~ "Mar",
+      median_peak_month_num == 4 ~ "Apr",
+      median_peak_month_num == 5 ~ "May",
+      median_peak_month_num == 6 ~ "Jun"
+    )
+  ) |>
+  arrange(median_peak_month_num) |>
+  select(basin, `Peak Month`)
+
+peak_test <- kruskal.test(peak_month_num ~ basin, data = peak_data)
+```
+::: {.columns}
+
+::: {.column width="100%"}
+::: {.card}
+A Kruskal-Wallis test found strong evidence that the typical peak snowpack month differs among basins ($\chi^2 = 49.311, df = 9, p < 0.001$). Pairwise Wilcoxon tests with Holm-adjusted p-values showed that many of the strongest differences involved the Milk basin, Fort Peck Lake, and Musselshell, indicating that peak snowpack timing is not uniform across Montana drainage basins.
+
+The clearest pattern was that the Milk basin typically peaked earlier, in March, while Fort Peck Lake and Musselshell typically peaked later, in May. Most other basins most often peaked in April.
+
+Because the dataset only includes observations from the first day of each month, these results should be interpreted as differences in peak timing at the monthly scale rather than the exact date of annual maximum snowpack.
 :::
+:::
+
+::: {.column width="100%"}
+```{r}
+peak_summary |>
+  knitr::kable(
+    caption = "Typical Peak Snowpack Month by Basin",
+    col.names = c("Basin", "Peak Month"))
+```
+:::
+
+:::
+
+```{r}
+#| output: false
+
+# Run pairwise wilcoxon test for more info about basin differences
+pairwise_peak <- pairwise.wilcox.test(
+  x = peak_data$peak_month_num,
+  g = peak_data$basin,
+  p.adjust.method = "holm",
+  exact = FALSE)
+pairwise_peak
+```
 
 # Findings and Resources
 
