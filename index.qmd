@@ -204,11 +204,7 @@ snotel_clean |>
 
 ### Column {width="40%"}
 
-<<<<<<< HEAD
 :::{.card height="460px"}
-=======
-:::{.card height="440px"}
->>>>>>> 3d6afe85b8f2ef10d03be500e1ee5313627a92d2
 ```{r}
 #| label: basin-summary-table
 
@@ -242,11 +238,7 @@ broad basin-level patterns rather than conditions at one specific SNOTEL site.
 
 # SWE Comparison
 
-<<<<<<< HEAD
 ## Row {height="690px"}
-=======
-## Row {height="675px"}
->>>>>>> 3d6afe85b8f2ef10d03be500e1ee5313627a92d2
 
 ### Column {width="65%"}
 ::: {.card}
