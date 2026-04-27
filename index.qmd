@@ -13,6 +13,7 @@ library(tidyverse)
 library(lubridate)
 library(knitr)
 library(plotly)
+library(sf)
 
 # Import CSV
 snotel = read_csv("mt_snotel_month.csv")
@@ -85,19 +86,92 @@ snotel_clean = snotel_clean |>
 
 
 # About the Data
+
+## Row {height="527px"}
+
+### Column
 This project explores snowpack trends across the 10 drainage basins in Montana between 2015 and 2025. Our focus is on snow water equivalent (SWE), which is a measure of the amount of water contained within the snowpack. Because snowpack is a major source of water for rivers, agriculture, recreation, population centers, and many other parts of life in Montana, comparing SWE across basins allows us to investigate differences in seasonal water availability.
 
-The Natural Resource Conservation Service (NRCS), a department of the U.S. Department of Agriculture, runs and maintains over 850 snow telemetry (SNOTEL) sites across the western U.S. and Alaska. These sites are automated monitoring stations that collect data on snowpack and climate conditions in mountain areas. SNOTEL sites commonly collect data on SWE, snow depth, precipitation, and air temperature. Some enhanced sites also collect soil moisture, soil temperature, solar radiation, wind speed, relative humidity, and atmospheric pressure, though not every site records every variable.
+The Natural Resource Conservation Service (NRCS), a department of the U.S. Department of Agriculture, runs and maintains over 850 snow telemetry (SNOTEL) sites across the western U.S. and Alaska. These sites are automated monitoring stations that collect data on snowpack and climate conditions in mountain areas. SNOTEL sites commonly collect data on SWE, snow depth, precipitation, and air temperature, as well as other data related to snow and weather conditions.
 
 Using the NRCS Air & Water Database Report Generator, we manually selected all 96 SNOTEL sites located in Montana and included the variables date, station name, station ID, latitude, longitude, elevation, SWE, snow depth, HUC6 code, and median SWE from 1991–2020. The median SWE variable represents the typical SWE value for each site and date based on the 1991–2020 reference period, which allows current observations to be compared to longer-term normal snowpack conditions.
 
-We were interested in data from October 2015 to September 2025 across all 96 sites, so pulling daily observations from each site for the entire 10-year span was not practical. Instead, we pulled monthly data from the first day of each month, which greatly reduced the size of our dataset. Each observation for each station was pulled from the first day of the month, so stations and years can be compared directly.
+### Column {width="750px"}
+```{r}
+#| label: basin_map
+#| echo: false
+#| warning: false
+#| message: false
 
-For this project, the term "year" refers to the water year (abreviated to "WY"), which runs from October 1 to September 30 of the following calendar year and is named for the year in which it ends. For example, the 2025 water year begins on October 1, 2024 and ends on September 30, 2025. The dataset was cleaned so that there are columns for both month and year of observation, with `month` stored as a factor beginning with October.
+Sys.setenv(SHAPE_RESTORE_SHX = "YES")
+library(sf)
+library(maps)
 
-The dataset also contains HUC6 codes for each station and observation. HUC6 codes are six-digit Hydrologic Unit Codes used to identify large drainage basins or watershed regions. In this project, these codes were used to group individual SNOTEL sites into major Montana drainage basins, allowing SWE patterns to be compared by watershed instead of only by individual station.
+# Read basin shapefile
+basins_sf <- st_read("WBDHU6.shp", quiet=TRUE)
 
-One limitation of this dataset is that it uses monthly observations from the first day of each month rather than daily records. This makes the dataset easier to work with and compare across stations, but it also means that short-term snow events, melt periods, or rapid changes between months are not captured. Because of this, the dashboard is best used to compare broad seasonal and basin-level SWE patterns rather than day-to-day snowpack conditions.
+# Lookup table for basins used in project
+basin_lookup <- tibble(
+  huc6 = c("100200", "100302", "170101", "170102", "100301",
+           "100700", "100401", "100402", "090400", "100500"),
+  basin = c("Missouri Headwaters", "Marias", "Kootenai", "Pend Oreille",
+            "Upper Missouri", "Upper Yellowstone", "Fort Peck Lake",
+            "Musselshell", "Upper South Saskatchewan River", "Milk")
+  )
+
+# Keep only project basins
+basins_sf <- basins_sf |>
+  mutate(huc6 = as.character(huc6)) |>
+  left_join(basin_lookup, by = "huc6") |>
+  filter(!is.na(basin)) |>
+  st_transform(4326)
+
+# Montana state polygon
+montana <- map("state", region = "montana", fill = TRUE, plot = FALSE) |>
+  st_as_sf()
+
+# Create one point per SNOTEL site
+sites_sf <- snotel_clean |>
+  distinct(lat, long, basin) |>
+  filter(!is.na(lat), !is.na(long), !is.na(basin)) |>
+  st_as_sf(coords = c("long", "lat"), crs = 4326, remove = FALSE)
+
+# Basin label positions
+basin_labels <- st_point_on_surface(basins_sf) |>
+  mutate(
+    short_basin = case_when(
+      basin == "Upper South Saskatchewan River" ~ "Upper South Sask.",
+      basin == "Missouri Headwaters" ~ "Missouri Hdwtrs",
+      basin == "Fort Peck Lake" ~ "Fort Peck",
+      TRUE ~ basin)
+    )
+
+# Create map of basins + snotel sites
+ggplot() +
+  geom_sf(data = montana, fill = "gray95", color = "black", linewidth = 0.4) +
+  geom_sf(data = basins_sf, aes(fill = basin), color = "gray40", linewidth = 0.3, alpha = 0.6) +
+  geom_sf(data = sites_sf, color = "black", size = 1.2, alpha = 0.8) +
+  geom_sf_label(data = basin_labels, aes(label = short_basin), size = 3, label.size = 0.2, 
+                fill = "white", alpha = 0.7) +
+  labs(
+    title = "Montana Drainage Basins and SNOTEL Site Locations",
+    subtitle = "SNOTEL sites shown as black points",
+    fill = "Drainage Basin"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    panel.grid.major = element_blank()
+  )
+```
+
+## Row {height="200px"}
+Observations were recorded from the 1st of each month instead of daily observations, which greatly reduced the size of our dataset and allows for stations and years to be compared directly. The term "year" refers to the water year (abreviated to "WY"), which runs from October 1 to September 30 of the following calendar year (ex: WY 2025 begins on 10/01/2024 and ends 09/30/2025). The dataset also contains six-digit Hydrologic Unit Codes (HUC6) used to identify watershed regions or basins. These codes were used to group individual SNOTEL sites into major Montana drainage basins, allowing SWE patterns to be compared by watershed
+
+The monthly data does not capture short-term snow or melt events, so this dashboard is best used to compare broad seasonal and basin-level SWE patterns rather than day-to-day snowpack conditions.
+
+
+
 
 # Seasonal SWE Patterns
 
@@ -131,7 +205,6 @@ snotel_clean |>
 ### Column {width="50%"}
 
 :::{.card height="440px"}
-<div style="max-height: 800px; overflow-y: auto; margin-left: auto; width: 100%;">
 ```{r}
 #| label: basin-summary-table
 
@@ -150,7 +223,6 @@ snotel_clean |>
       col.names = c("Drainage Basin", "Mean SWE", "Median SWE", "Maximum SWE")
       )
 ```
-</div>
 :::
 
 ## Row
@@ -166,10 +238,10 @@ broad basin-level patterns rather than conditions at one specific SNOTEL site.
 
 # SWE Comparison
 
-## Row {height="560px"}
+## Row {height="675px"}
 
-### Column {width="60%"}
-::: {.card height="570px"}
+### Column {width="65%"}
+::: {.card}
 ```{r}
 #| label: interactive-pct-median-swe-heatmap
 
@@ -224,7 +296,7 @@ heatmap = plot_ly(
   ) |>
   layout(
     title = "Percent of Median SWE by Basin and Month",
-    height = 500,
+    height = 650,
     margin = list(l = 140, r = 140, t = 30, b = 40),
     xaxis = list(
       title = "Month",
@@ -250,7 +322,7 @@ heatmap
 ```
 :::
 
-### Column {width="40%"}
+### Column {width="35%"}
 This heatmap compares observed SWE to the 1991–2020 median SWE during the main snowpack season. Use the water year slider to change the water year. Values 
 near 100% indicate SWE close to the long-term median, values below 100% indicate below-median snowpack, and values above 100% indicate above-median snowpack.
 
@@ -258,7 +330,7 @@ near 100% indicate SWE close to the long-term median, values below 100% indicate
 
 ```{r}
 #| warning: false
-
+# Create peak swe tibble, filter and order months, and group sites by wy & basin
 peak_data <- snotel_clean |>
   filter(month %in% c("Jan", "Feb", "Mar", "Apr", "May", "Jun")) |>
   group_by(water_year, basin, month) |>
@@ -280,6 +352,7 @@ peak_data <- snotel_clean |>
   slice_max(order_by = mean_swe, n = 1, with_ties = FALSE) |>
   ungroup()
 
+# Create summary of peak SWE month by basin across all years in data
 peak_summary <- peak_data |>
   group_by(basin) |>
   summarise(
@@ -296,29 +369,20 @@ peak_summary <- peak_data |>
       median_peak_month_num == 6 ~ "Jun"
     )
   ) |>
-  arrange(median_peak_month_num) |>
+  arrange(desc(median_peak_month_num)) |>
   select(basin, `Peak Month`)
 
+# Run KW test to determine true differences in peak SWE month
 peak_test <- kruskal.test(peak_month_num ~ basin, data = peak_data)
 ```
 
 ```{r}
+# Create peak SWE month by basin table
 peak_summary |>
   knitr::kable(
     caption = "Typical Peak Snowpack Month by Basin",
     col.names = c("Basin", "Peak Month"))
 ```
-
-## Row 
-
-::: {.card}
-A Kruskal-Wallis test found strong evidence that the typical peak snowpack month differs among basins ($\chi^2 = 49.311, df = 9, p < 0.001$). Pairwise Wilcoxon tests with Holm-adjusted p-values showed that many of the strongest differences involved the Milk basin, Fort Peck Lake, and Musselshell, indicating that peak snowpack timing is not uniform across Montana drainage basins.
-
-The clearest pattern was that the Milk basin typically peaked earlier, in March, while Fort Peck Lake and Musselshell typically peaked later, in May. Most other basins most often peaked in April.
-
-Because the dataset only includes observations from the first day of each month, these results should be interpreted as differences in peak timing at the monthly scale rather than the exact date of annual maximum snowpack.
-:::
-
 
 ```{r}
 #| output: false
@@ -333,6 +397,18 @@ pairwise_peak
 ```
 
 # Findings and Resources
+
+## Row {height="250px"}
+
+::: {.card}
+A Kruskal-Wallis test found strong evidence that the typical peak snowpack month differs among basins ($\chi^2 = 49.311, df = 9, p < 0.001$). Pairwise Wilcoxon tests with Holm-adjusted p-values showed that many of the strongest differences involved the Milk basin, Fort Peck Lake, and Musselshell, indicating that peak snowpack timing is not uniform across Montana drainage basins.
+
+The clearest pattern was that the Milk basin typically peaked earlier, in March, while Fort Peck Lake and Musselshell typically peaked later, in May. Most other basins most often peaked in April.
+
+Because the dataset only includes observations from the first day of each month, these results should be interpreted as differences in peak timing at the monthly scale rather than the exact date of annual maximum snowpack.
+:::
+
+## Row
 
 In this case study we are focusing on the median SWE for each snow telemetry site in Montana from 2016 to 2025. After manually assigning each snow telemetry
 site in Montana to its respective drainage basin using the HUC6 code, we were able to calculate an average SWE from 1991 to 2020 for each site, and compare
