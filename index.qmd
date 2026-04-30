@@ -399,17 +399,13 @@ pairwise_peak
 # Findings and Resources
 
 
-## Row {height="285px"}
+## Row {height="240px"}
 
-### Column {width="39%"}
-In this case study we are focusing on the median SWE for each snow telemetry site in Montana from 2016 to 2025. After manually assigning each snow telemetry
-site in Montana to its respective drainage basin using the HUC6 code, we were able to calculate an average SWE from 1991 to 2020 for each site, and compare
-the overall average to the yearly average based on the watershed. Doing this we are able to visualize the difference in snow water equivalent not only for
-each drainage basin or region in Montana, but compare the same basin to itself during different water years.
+### Column {width="41%"}
+In this case study we are focusing on the median SWE for each snow telemetry site in Montana from 2016 to 2025. After manually assigning each SNOTEL site in Montana to its respective drainage basin using the HUC6 code, we were able to compare basin wide SWE observations to the median SWE from 1991 to 2020 by both months and years. Doing this we are able to visualize the difference in snow water equivalent not only for each drainage basin or region in Montana, but compare the same basin to itself during different water years.
 
-### Column {width="61%"}
+### Column {width="59%"}
 A Kruskal-Wallis test found strong evidence that the typical peak snowpack month differs among basins ($\chi^2 = 49.311, df = 9, p < 0.001$). Pairwise Wilcoxon tests showed the strongest differences involved the Milk, Fort Peck Lake, and Musselshell basins, indicating that peak snowpack timing is not uniform across Montana drainage basins. The clearest pattern was that the Milk basin typically peaked earlier, in March, while Fort Peck Lake and Musselshell basins typically peaked later, in May. Most other basins most often peaked in April.
-
 Because the dataset only includes observations from the first day of each month, these results should be interpreted as differences in peak timing at the monthly scale rather than the exact date of annual maximum snowpack.
 
 ## Row
@@ -426,3 +422,12 @@ Through this analysis, it is hard to compare actual amount of snow in one region
 over the last 30 years. What these graphics excel at is seeing each region's percent of median SWE for each month. We can analyze the differences throughout
 the years, and even see the changes in percent throughout one year. Although we will miss smaller scale weather events such as melts or large storms because
 of our monthly readings, this information still gives us great insights on historic patterns of snow melt for the state of Montana. 
+
+## Row
+**Resources**
+U.S. Department of Agriculture, Natural Resources Conservation Service. (n.d.). Report Generator 2.0: Air & Water Database Report Generator. Retrieved April 1, 2026.
+https://wcc.sc.egov.usda.gov/reportGenerator/
+
+U.S. Department of Agriculture, Natural Resources Conservation Service, National Geospatial Center of Excellence, & U.S. Geological Survey. (2025, February 4). Watershed Boundary Dataset for Montana [Data set]. Montana State Library.
+https://mslservices.mt.gov/Geographic_Information/Data/DataList/datalist_Details.aspx?did=%7B0077A7D3-F6C3-4D08-9837-410E79A12FCC%7D
+
