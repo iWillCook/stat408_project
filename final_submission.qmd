@@ -1,0 +1,21 @@
+---
+title: "Final Submission"
+author: "William Cook & Jacob Lindsey"
+date: today
+format: pdf
+---
+
+## Quarto Dashboard 
+
+<https://iwillcook.github.io/stat408_project/>
+
+
+## GitHub Repo
+
+<https://github.com/iWillCook/stat408_project>
+
+## Reflection
+
+Our dashboard presents information on Montana’s different watersheds or drainage basins, as well as data from multiple snow telemetry sites across the basins. Our goal was to analyze the snow water equivalent (SWE) at each basin throughout the water year. In our case, we used the median from 1991 to 2020, so our calculated data is percent of that median. Making the heatmap was a new task that took lots of trial and error to get right, and making the basin map proved to be more difficult than imagined, but with our previous experience and some external help we were able to learn and understand new features that will help us in the future. The map, heatmap, tables, and statistical tests we produced/conducted are all very relevant to our question of how SWE compares by basin, month, and year in Montana and has asnwered some personal questions about the topic. Our project and this dashboard is not to be used to compare stations, but will excel at comparing Montana’s basins and their peak months individually. We only scratched the surface of what is possible with this data, and the code is intended to be well commented and reproducible so anyone interested in this topic can pick up where we left off and provide future analysis.
+
+
